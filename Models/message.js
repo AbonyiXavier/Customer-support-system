@@ -2,38 +2,20 @@ const Sequelize = require("sequelize");
 const db = require("../database/db");
 
 module.exports = db.sequelize.define(
-  "user",
+  "messages",
   {
     id: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    firstName: {
+    messageType: {
       type: Sequelize.STRING,
     },
-    lastName: {
-      type: Sequelize.STRING,
-    },
-    email: {
-      type: Sequelize.STRING,
-    },
-    phoneNumber: {
-      type: Sequelize.STRING,
-    },
-    profilePics: {
-      type: Sequelize.STRING,
-    },
-    password: {
-      type: Sequelize.STRING,
-    },
-    role: {
+    messageContent: {
       type: Sequelize.STRING,
     },
     dateCreated: {
-      type: Sequelize.DATE,
-    },
-    lastLoginDate: {
       type: Sequelize.DATE,
     },
   },

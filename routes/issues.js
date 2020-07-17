@@ -5,50 +5,73 @@ const cors = require("cors");
 issues.use(cors());
 
 const Issue = require("../Models/issues");
+const upload = require("../middlewares/multer");
+const sendSms = require("../send_sms");
 
-issues.post("/complains", async (req, res) => {
+issues.post("/complaints", upload.single("profilePics"), async (req, res) => {
+  console.log("my file", req.file.path);
   try {
-    const {
-      full_name,
-      email,
-      phone,
-      contract_number,
-      //   category,
-      message,
-      status,
-    } = req.body;
+    let { isCustomer, phoneNumber } = req.body;
+    if (req.body.contractNumber) {
+      isCustomer = true;
+    } else {
+      isCustomer = false;
+    }
     const data = await Issue.create({
-      full_name,
-      email,
-      phone,
-      contract_number,
-      //   category,
-      message,
-      status,
-    });
-    const mailOptions = {
-      from: req.body.email,
-      to: "Michael <olawuni.michael@gmail.com>",
-      subject: "Complains from customer",
-      html:
-        "Welcome to KADSWA. Your message is received. We shall treat accordingly. Thanks",
-    };
-
-    transporter.sendMail(mailOptions, function (err, data) {
-      if (err) {
-        console.log("my error", err);
-        res.json({
-          status: "fail",
-        });
-      } else {
-        console.log("Email sent to: " + data.response);
-        res.json({
-          status: "success",
-        });
-      }
+      fullName: req.body.fullName,
+      email: req.body.email,
+      phoneNumber: req.body.phoneNumber,
+      categoryOfIssues: req.body.categoryOfIssues,
+      contractNumber: req.body.contractNumber,
+      consumptionType: req.body.consumptionType,
+      billingPeriod: req.body.billingPeriod,
+      billingYear: req.body.billingYear,
+      openingBalance: req.body.openingBalance,
+      currentCharges: req.body.currentCharges,
+      closingBalance: req.body.closingBalance,
+      previousClosingBalance: req.body.previousClosingBalance,
+      trackingId: req.body.trackingId,
+      amountPaid: req.body.amountPaid,
+      paymentDate: req.body.paymentDate,
+      channelOfPayment: req.body.channelOfPayment,
+      facilityName: req.body.facilityName,
+      location: req.body.location,
+      maintenanceType: req.body.maintenanceType,
+      descriptionOfIssues: req.body.descriptionOfIssues,
+      profilePics: req.file.path,
+      address: req.body.address,
+      status: req.body.status ? req.body.status : "pending",
+      isCustomer: isCustomer,
     });
 
-    res.send({
+    const newMessage =
+      "Welcome to KADSWA. Your message is received. We shall treat accordingly. Thanks";
+
+    sendSms(phoneNumber, newMessage);
+
+    // const mailOptions = {
+    //   from: "Michael <douglasjoseph166@gmail.com>",
+    //   to: req.body.email,
+    //   subject: "Complaints from customer",
+    //   html:
+    //     "Welcome to KADSWA. Your message is received. We shall treat accordingly. Thanks",
+    // };
+
+    // transporter.sendMail(mailOptions, function (err, data) {
+    //   if (err) {
+    //     console.log("my error", err);
+    //     return res.json({
+    //       status: "fail",
+    //     });
+    //   } else {
+    //     console.log("Email sent to: " + data.response);
+    //     return res.json({
+    //       status: "success",
+    //     });
+    //   }
+    // });
+
+    return res.send({
       data: data,
       message: "Issues created successfully",
     });
@@ -57,20 +80,17 @@ issues.post("/complains", async (req, res) => {
   }
 });
 
-issues.get("/complains", async (req, res) => {
+//Get Users
+issues.get("/getcomplaints", async (req, res) => {
   try {
-    const results = await Issue.findAll();
-    res.send({
-      results: results,
-    });
+    const complaint = await Issue.findAll();
+    res.send(complaint);
   } catch (error) {
-    res.status(400).send({
-      message: "There was an error getting all complains",
-    });
+    console.log("error", error);
   }
 });
 
-issues.get("/complains/:id", async (req, res) => {
+issues.get("/complaints/:id", async (req, res) => {
   try {
     const data = await Issue.findOne({
       where: {
@@ -78,7 +98,7 @@ issues.get("/complains/:id", async (req, res) => {
       },
     });
     res.send({
-      data: data,
+      data,
     });
   } catch (error) {
     console.log(error);
@@ -88,44 +108,26 @@ issues.get("/complains/:id", async (req, res) => {
   }
 });
 
-issues.put("/complains/:id", async (req, res) => {
+issues.patch("/complaints/:id", async (req, res) => {
+  console.log(req.body);
+  console.log(req.params);
   try {
     const id = req.params.id;
-    const data = await Issue.update(req.body, {
-      where: {
-        id: id,
-      },
-    });
-    if (data == 1) {
-      res.send({
-        data: data,
-        message: "complain was updated successfully",
-      });
-      const mailOptions = {
-        from: "Xavier <francisabonyi@gmail.com>",
-        to: req.body.email,
-        subject: "update on customer Complains",
-        html: "From KADSWA. Your complain is resolved. Thanks",
-      };
 
-      transporter.sendMail(mailOptions, function (err, data) {
-        if (err) {
-          console.log("my error", err);
-          res.json({
-            status: "fail",
-          });
-        } else {
-          console.log("Email sent to: " + data.response);
-          res.json({
-            status: "success",
-          });
-        }
-      });
-    } else {
-      res.send({
-        message: `Cannot update complain with id=${id}`,
-      });
-    }
+    const data = await Issue.update(
+      {
+        status: req.body.status,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+    res.send({
+      data,
+      message: " issue was updated successfully",
+    });
   } catch (error) {
     console.log(error);
     res.status(400).send({

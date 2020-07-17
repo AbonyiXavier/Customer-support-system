@@ -1,17 +1,20 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
 const Auth = (req, res, next) => {
-  const token = req.header("Authorization");
-  console.log("my token", token);
-  if (!token) {
+  let token = req.header("Authorization");
+  // console.log("token", token);
+  const touch = token.split(" ")[1];
+
+  console.log("token touch", touch);
+  if (!touch) {
     return res.status(401).json({
       status: "failure",
       message: "No access token provided!",
     });
   }
-  if (token) {
+  if (touch) {
     try {
-      jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
+      jwt.verify(touch, process.env.TOKEN_SECRET, function (err, decoded) {
         console.log("my name", decoded);
         req.user = decoded;
         next();
@@ -25,4 +28,4 @@ const Auth = (req, res, next) => {
     }
   }
 };
-export default Auth;
+module.exports = Auth;
